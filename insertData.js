@@ -30,7 +30,7 @@ var students = [
     }
 ];
 
-MongoClient.connect(url, function(err, db) {
+MongoClient.connect(url, function (err, db) {
     if (err) {
         console.log('Не удалось подключиться. Ошибка: ', err);
     } else {

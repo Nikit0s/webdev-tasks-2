@@ -14,7 +14,7 @@ module.exports = {
         $nin: '$in'
     },
 
-    server: function(url) {
+    server: function (url) {
         if (!url) {
             console.log('Укажите URL для подключения');
             return;
@@ -24,7 +24,7 @@ module.exports = {
         return this;
     },
 
-    collection: function(name) {
+    collection: function (name) {
         if (!name) {
             console.log('Укажите название коллекции');
             return;
@@ -34,7 +34,7 @@ module.exports = {
         return this;
     },
 
-    where: function(field) {
+    where: function (field) {
         if (!field) {
             console.log('Укажите название поля');
             return;
@@ -44,7 +44,7 @@ module.exports = {
         return this;
     },
 
-    equal: function(value) {
+    equal: function (value) {
         if (this.isNot) {
             this.query[this.field] = {
                 $ne: value
@@ -55,7 +55,7 @@ module.exports = {
         return this;
     },
 
-    lessThan: function(value) {
+    lessThan: function (value) {
         if (this.isNot) {
             this.query[this.field] = {
                 $gt: value
@@ -68,7 +68,7 @@ module.exports = {
         return this;
     },
 
-    greatThan: function(value) {
+    greatThan: function (value) {
         if (this.isNot) {
             this.query[this.field] = {
                 $lt: value
@@ -81,7 +81,7 @@ module.exports = {
         return this;
     },
 
-    include: function(valuesArray) {
+    include: function (valuesArray) {
         if (this.isNot) {
             this.query[this.field] = {
                 $nin: valuesArray
@@ -94,14 +94,14 @@ module.exports = {
         return this;
     },
 
-    not: function() {
+    not: function () {
         this.isNot = true;
         return this;
     },
 
-    find: function(callback) {
+    find: function (callback) {
         var _this = this;
-        MongoClient.connect(this.url, function(err, db) {
+        MongoClient.connect(this.url, function (err, db) {
             if (err) {
                 console.log('Не удалось подключиться. Ошибка: ', err);
                 callback(err);
