@@ -1,123 +1,140 @@
 'use strict';
 var MongoClient = require('mongodb').MongoClient;
+var assert = require('assert');
 
-module.exports = {
-    url: null,
-    collectionName: null,
-    field: null,
-    query: {},
-    isNot: false,
-    anti: {
+var Multivarka = function () {
+    var url = null;
+    var collectionName = null;
+    var field = null;
+    var query = {};
+    var isNot = false;
+    var anti = {
         $gt: '$lt',
         $lt: '$gt',
         $in: '$nin',
         $nin: '$in'
-    },
+    };
+    var self = this;
 
-    server: function (url) {
-        if (!url) {
+    this.server = function (inURL) {
+        if (!inURL) {
             console.log('Укажите URL для подключения');
             return;
         } else {
-            this.url = url;
+            url = inURL;
         }
-        return this;
-    },
+        return self;
+    };
 
-    collection: function (name) {
+    this.collection = function (name) {
         if (!name) {
             console.log('Укажите название коллекции');
             return;
         } else {
-            this.collectionName = name;
+            collectionName = name;
         }
-        return this;
-    },
+        return self;
+    };
 
-    where: function (field) {
-        if (!field) {
+    this.where = function (inField) {
+        isNot = false;
+        if (!inField) {
             console.log('Укажите название поля');
             return;
         } else {
-            this.field = field;
+            field = inField;
         }
-        return this;
-    },
+        return self;
+    };
 
-    equal: function (value) {
-        if (this.isNot) {
-            this.query[this.field] = {
+    this.equal = function (value) {
+        if (isNot) {
+            query[field] = {
                 $ne: value
             };
         } else {
-            this.query[this.field] = value;
+            query[field] = value;
         }
-        return this;
-    },
+        return self;
+    };
 
-    lessThan: function (value) {
-        if (this.isNot) {
-            this.query[this.field] = {
+    this.lessThan = function (value) {
+        if (isNot) {
+            query[field] = {
                 $gt: value
             };
         } else {
-            this.query[this.field] = {
+            query[field] = {
                 $lt: value
             };
         }
-        return this;
-    },
+        return self;
+    };
 
-    greatThan: function (value) {
-        if (this.isNot) {
-            this.query[this.field] = {
+    this.greatThan = function (value) {
+        if (isNot) {
+            query[field] = {
                 $lt: value
             };
         } else {
-            this.query[this.field] = {
+            query[field] = {
                 $gt: value
             };
         }
-        return this;
-    },
+        return self;
+    };
 
-    include: function (valuesArray) {
-        if (this.isNot) {
-            this.query[this.field] = {
+    this.include = function (valuesArray) {
+        if (isNot) {
+            query[field] = {
                 $nin: valuesArray
             };
         } else {
-            this.query[this.field] = {
+            query[field] = {
                 $in: valuesArray
             };
         }
-        return this;
-    },
+        return self;
+    };
 
-    not: function () {
-        this.isNot = true;
-        return this;
-    },
+    this.not = function () {
+        isNot = true;
+        return self;
+    };
 
-    find: function (callback) {
-        var _this = this;
-        MongoClient.connect(this.url, function (err, db) {
+    this.find = function (callback) {
+        connectDB(url)
+            .then(function (db) {
+                request(db, collectionName, query, callback);
+            });
+    };
+
+    var connectDB = function (url) {
+        return new Promise(function (resolve, reject) {
+            MongoClient.connect(url, function (err, db) {
+                if (err) {
+                    console.log('Не удалось подключиться. Ошибка: ', err);
+                    reject();
+                } else {
+                    resolve(db);
+                }
+            });
+        });
+    };
+
+    var request = function (db, collectionName, query, callback) {
+        console.log(query);
+        var collection = db.collection(collectionName);
+        collection.find(query).toArray(function (err, data) {
             if (err) {
-                console.log('Не удалось подключиться. Ошибка: ', err);
+                console.log('Не удалось найти данные по данному запросу. Ошибка ', err);
                 callback(err);
             } else {
-                console.log(_this.query);
-                var collection = db.collection(_this.collectionName);
-                collection.find(_this.query).toArray(function (err, data) {
-                    if (err) {
-                        console.log('Не удалось найти данные по данному запросу. Ошибка ', err);
-                        callback(err);
-                    } else {
-                        callback(null, data);
-                    }
-                    db.close();
-                });
+                callback(null, data);
             }
+            db.close();
         });
-    }
+    };
 };
+
+module.exports = new Multivarka();
